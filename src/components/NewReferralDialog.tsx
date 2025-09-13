@@ -168,11 +168,11 @@ const NewReferralDialog = ({ open, onOpenChange, onSuccess }: NewReferralDialogP
       onSuccess();
       onOpenChange(false);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting referral:', error);
       toast({
         title: "Error",
-        description: "Failed to submit referral. Please try again.",
+        description: error?.message || (error?.hint || 'Failed to submit referral. Please try again.'),
         variant: "destructive",
       });
     } finally {
