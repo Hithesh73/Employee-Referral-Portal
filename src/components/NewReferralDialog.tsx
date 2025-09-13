@@ -36,7 +36,10 @@ const referralSchema = z.object({
   candidateDob: z.string().min(1, 'Date of birth is required'),
   selectedJobs: z.array(z.string()).min(1, 'Please select at least one job'),
   howKnowCandidate: z.string().min(1, 'Please describe how you know this candidate').max(500, 'Maximum 500 characters'),
-  resume: z.instanceof(File).optional(),
+  resume: z.instanceof(File),
+}).refine((data) => data.resume, {
+  message: "Resume is required",
+  path: ["resume"],
 });
 
 type ReferralForm = z.infer<typeof referralSchema>;
@@ -65,6 +68,7 @@ const NewReferralDialog = ({ open, onOpenChange, onSuccess }: NewReferralDialogP
       candidateDob: '',
       selectedJobs: [],
       howKnowCandidate: '',
+      resume: undefined,
     },
   });
 
@@ -126,13 +130,10 @@ const NewReferralDialog = ({ open, onOpenChange, onSuccess }: NewReferralDialogP
 
     setLoading(true);
     try {
-      let resumePath = null;
-      
-      if (data.resume) {
-        resumePath = await uploadResume(data.resume);
-        if (!resumePath && data.resume) {
-          return; // Upload failed
-        }
+      // Upload resume (now mandatory)
+      const resumePath = await uploadResume(data.resume);
+      if (!resumePath) {
+        return; // Upload failed
       }
 
       // Create referrals for each selected job
@@ -284,7 +285,7 @@ const NewReferralDialog = ({ open, onOpenChange, onSuccess }: NewReferralDialogP
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="resume">Resume (PDF, DOC, DOCX - Max 10MB)</Label>
+              <Label htmlFor="resume">Resume (PDF, DOC, DOCX - Max 10MB) *</Label>
               <Input
                 id="resume"
                 type="file"
@@ -304,6 +305,11 @@ const NewReferralDialog = ({ open, onOpenChange, onSuccess }: NewReferralDialogP
                   }
                 }}
               />
+              {form.formState.errors.resume && (
+                <p className="text-sm text-destructive">
+                  {form.formState.errors.resume.message}
+                </p>
+              )}
             </div>
           </div>
 
