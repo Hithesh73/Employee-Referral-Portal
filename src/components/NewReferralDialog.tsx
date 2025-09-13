@@ -36,10 +36,7 @@ const referralSchema = z.object({
   candidateDob: z.string().min(1, 'Date of birth is required'),
   selectedJobs: z.array(z.string()).min(1, 'Please select at least one job'),
   howKnowCandidate: z.string().min(1, 'Please describe how you know this candidate').max(500, 'Maximum 500 characters'),
-  resume: z.instanceof(File),
-}).refine((data) => data.resume, {
-  message: "Resume is required",
-  path: ["resume"],
+  resume: z.instanceof(File).optional(),
 });
 
 type ReferralForm = z.infer<typeof referralSchema>;
@@ -130,10 +127,16 @@ const NewReferralDialog = ({ open, onOpenChange, onSuccess }: NewReferralDialogP
 
     setLoading(true);
     try {
-      // Upload resume (now mandatory)
-      const resumePath = await uploadResume(data.resume);
-      if (!resumePath) {
-        return; // Upload failed
+      let resumePath: string | null = null;
+      if (data.resume) {
+        const uploaded = await uploadResume(data.resume);
+        if (!uploaded) {
+          toast({
+            title: "Resume upload failed",
+            description: "Continuing without attaching the resume.",
+          });
+        }
+        resumePath = uploaded;
       }
 
       // Create referrals for each selected job
@@ -285,7 +288,7 @@ const NewReferralDialog = ({ open, onOpenChange, onSuccess }: NewReferralDialogP
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="resume">Resume (PDF, DOC, DOCX - Max 10MB) *</Label>
+              <Label htmlFor="resume">Resume (PDF, DOC, DOCX - Max 10MB)</Label>
               <Input
                 id="resume"
                 type="file"
@@ -302,14 +305,11 @@ const NewReferralDialog = ({ open, onOpenChange, onSuccess }: NewReferralDialogP
                       return;
                     }
                     form.setValue('resume', file);
+                  } else {
+                    form.setValue('resume', undefined as any);
                   }
                 }}
               />
-              {form.formState.errors.resume && (
-                <p className="text-sm text-destructive">
-                  {form.formState.errors.resume.message}
-                </p>
-              )}
             </div>
           </div>
 
