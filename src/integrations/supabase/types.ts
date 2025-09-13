@@ -176,7 +176,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_profile_for_status: {
+        Args: { user_id: string }
+        Returns: {
+          first_name: string
+          last_name: string
+        }[]
+      }
     }
     Enums: {
       referral_status:

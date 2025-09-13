@@ -25,10 +25,8 @@ interface StatusHistory {
   status: string;
   note: string | null;
   created_at: string;
-  profiles: {
-    first_name: string;
-    last_name: string;
-  };
+  changed_by: string;
+  user_name?: string;
 }
 
 interface Referral {
@@ -89,20 +87,34 @@ const HRReferralDetailDialog = ({ referral, open, onOpenChange, onUpdate }: HRRe
   const fetchStatusHistory = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      const { data: historyData, error } = await supabase
         .from('referral_status_history')
-        .select(`
-          *,
-          profiles (
-            first_name,
-            last_name
-          )
-        `)
+        .select('*')
         .eq('referral_id', referral.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setStatusHistory(data || []);
+
+      // Get unique user IDs and fetch their profiles
+      const userIds = [...new Set(historyData?.map(h => h.changed_by) || [])];
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('user_id, first_name, last_name')
+        .in('user_id', userIds);
+
+      // Create a map of user_id to profile
+      const profileMap = new Map();
+      profilesData?.forEach(profile => {
+        profileMap.set(profile.user_id, `${profile.first_name} ${profile.last_name}`);
+      });
+
+      // Add user names to history data
+      const historyWithNames = historyData?.map(history => ({
+        ...history,
+        user_name: profileMap.get(history.changed_by) || 'Unknown User'
+      })) || [];
+
+      setStatusHistory(historyWithNames);
     } catch (error) {
       console.error('Error fetching status history:', error);
       toast({
@@ -458,7 +470,7 @@ const HRReferralDetailDialog = ({ referral, open, onOpenChange, onUpdate }: HRRe
                               {formatDate(history.created_at)}
                             </span>
                             <span className="text-xs text-muted-foreground">
-                              By: {history.profiles.first_name} {history.profiles.last_name}
+                              By: {history.user_name}
                             </span>
                             {history.note && (
                               <p className="text-xs mt-1 p-2 bg-muted rounded">{history.note}</p>
