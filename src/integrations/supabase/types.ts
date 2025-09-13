@@ -200,6 +200,26 @@ export type Database = {
         }
         Returns: string
       }
+      get_referrals_by_employee_identifier: {
+        Args: { p_email?: string; p_employee_id: string }
+        Returns: {
+          candidate_email: string
+          candidate_first_name: string
+          candidate_last_name: string
+          candidate_middle_name: string
+          candidate_phone: string
+          created_at: string
+          current_status: Database["public"]["Enums"]["referral_status"]
+          how_know_candidate: string
+          id: string
+          job_department: string
+          job_id: string
+          job_job_id: string
+          job_title: string
+          resume_path: string
+          updated_at: string
+        }[]
+      }
       get_user_profile_for_status: {
         Args: { user_id: string }
         Returns: {

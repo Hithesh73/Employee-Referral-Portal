@@ -42,20 +42,33 @@ const EmployeeDashboard = () => {
     
     try {
       const { data, error } = await supabase
-        .from('referrals')
-        .select(`
-          *,
-          jobs (
-            job_id,
-            title,
-            department
-          )
-        `)
-        .eq('referrer_id', employee.id)
-        .order('created_at', { ascending: false });
+        .rpc('get_referrals_by_employee_identifier', {
+          p_employee_id: employee.employee_id,
+          p_email: employee.email,
+        });
 
       if (error) throw error;
-      setReferrals(data || []);
+
+      const mapped = (data || []).map((r: any) => ({
+        id: r.id,
+        candidate_first_name: r.candidate_first_name,
+        candidate_middle_name: r.candidate_middle_name,
+        candidate_last_name: r.candidate_last_name,
+        candidate_phone: r.candidate_phone,
+        candidate_email: r.candidate_email,
+        current_status: r.current_status,
+        created_at: r.created_at,
+        updated_at: r.updated_at,
+        resume_path: r.resume_path || undefined,
+        how_know_candidate: r.how_know_candidate,
+        jobs: {
+          job_id: r.job_job_id,
+          title: r.job_title,
+          department: r.job_department,
+        },
+      }));
+
+      setReferrals(mapped);
     } catch (error) {
       console.error('Error fetching referrals:', error);
       toast({
