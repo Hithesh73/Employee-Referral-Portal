@@ -122,7 +122,7 @@ const NewReferralDialog = ({ open, onOpenChange, onSuccess }: NewReferralDialogP
   };
 
   const onSubmit = async (data: ReferralForm) => {
-    if (!user) return;
+    if (!employee) return;
 
     setLoading(true);
     try {
