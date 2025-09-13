@@ -193,6 +193,24 @@ export type Database = {
           last_name: string
         }[]
       }
+      is_current_user_hr: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      validate_employee_login: {
+        Args: { p_email: string; p_employee_id: string; p_password: string }
+        Returns: {
+          created_at: string
+          email: string
+          employee_id: string
+          id: string
+          is_active: boolean
+          name: string
+          password: string
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+        }[]
+      }
     }
     Enums: {
       referral_status:

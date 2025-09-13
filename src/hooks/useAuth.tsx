@@ -51,16 +51,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signInWithEmail = async (email: string, password: string) => {
     try {
       const { data, error } = await supabase
-        .from('employees')
-        .select('*')
-        .eq('email', email)
-        .eq('password', password)
-        .eq('is_active', true)
-        .maybeSingle();
+        .rpc('validate_employee_login', {
+          p_email: email,
+          p_employee_id: null,
+          p_password: password
+        });
 
       if (error) throw error;
 
-      if (!data) {
+      if (!data || data.length === 0) {
         const authError = { message: 'Invalid email or password' };
         toast({
           title: "Login Failed",
@@ -70,12 +69,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return { error: authError };
       }
 
+      const employee = data[0];
+
       // Create JWT token for authentication
-      const token = btoa(JSON.stringify({ employee_id: data.employee_id }));
+      const token = btoa(JSON.stringify({ employee_id: employee.employee_id }));
       
       // Store employee data and set auth header
-      setEmployee(data);
-      localStorage.setItem('employee', JSON.stringify(data));
+      setEmployee(employee);
+      localStorage.setItem('employee', JSON.stringify(employee));
       localStorage.setItem('auth_token', token);
       
       return { error: null };
@@ -92,16 +93,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signInWithEmployeeId = async (employeeId: string, password: string) => {
     try {
       const { data, error } = await supabase
-        .from('employees')
-        .select('*')
-        .eq('employee_id', employeeId)
-        .eq('password', password)
-        .eq('is_active', true)
-        .maybeSingle();
+        .rpc('validate_employee_login', {
+          p_email: null,
+          p_employee_id: employeeId,
+          p_password: password
+        });
 
       if (error) throw error;
 
-      if (!data) {
+      if (!data || data.length === 0) {
         const authError = { message: 'Invalid employee ID or password' };
         toast({
           title: "Login Failed",
@@ -111,12 +111,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return { error: authError };
       }
 
+      const employee = data[0];
+
       // Create JWT token for authentication
-      const token = btoa(JSON.stringify({ employee_id: data.employee_id }));
+      const token = btoa(JSON.stringify({ employee_id: employee.employee_id }));
       
       // Store employee data and set auth header
-      setEmployee(data);
-      localStorage.setItem('employee', JSON.stringify(data));
+      setEmployee(employee);
+      localStorage.setItem('employee', JSON.stringify(employee));
       localStorage.setItem('auth_token', token);
       
       return { error: null };
