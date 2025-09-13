@@ -31,9 +31,8 @@ interface Referral {
     title: string;
     department: string;
   };
-  profiles: {
-    first_name: string;
-    last_name: string;
+  employees: {
+    name: string;
     employee_id: string;
   };
 }
@@ -78,9 +77,8 @@ const HRDashboard = () => {
             title,
             department
           ),
-          profiles (
-            first_name,
-            last_name,
+          employees!referrer_id (
+            name,
             employee_id
           )
         `)
@@ -165,8 +163,7 @@ const HRDashboard = () => {
           .includes(searchTerm.toLowerCase()) ||
         referral.jobs.job_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
         referral.jobs.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        referral.profiles.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        referral.profiles.last_name.toLowerCase().includes(searchTerm.toLowerCase())
+        referral.employees.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -377,7 +374,7 @@ const HRDashboard = () => {
                         {referral.jobs.job_id} - {referral.jobs.title}
                       </CardDescription>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Referred by: {referral.profiles.first_name} {referral.profiles.last_name} ({referral.profiles.employee_id})
+                        Referred by: {referral.employees.name} ({referral.employees.employee_id})
                       </p>
                     </div>
                     <Button

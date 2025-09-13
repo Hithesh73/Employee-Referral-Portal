@@ -48,9 +48,8 @@ interface Referral {
     title: string;
     department: string;
   };
-  profiles: {
-    first_name: string;
-    last_name: string;
+  employees: {
+    name: string;
     employee_id: string;
   };
 }
@@ -276,7 +275,7 @@ const HRReferralDetailDialog = ({ referral, open, onOpenChange, onUpdate }: HRRe
                 {referral.jobs.job_id} - {referral.jobs.title}
               </DialogDescription>
               <p className="text-sm text-muted-foreground mt-1">
-                Referred by: {referral.profiles.first_name} {referral.profiles.last_name} ({referral.profiles.employee_id})
+                Referred by: {referral.employees.name} ({referral.employees.employee_id})
               </p>
             </div>
             <Badge className={getStatusColor(referral.current_status)}>
