@@ -14,7 +14,163 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      jobs: {
+        Row: {
+          created_at: string
+          department: string | null
+          id: string
+          is_active: boolean
+          job_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          department?: string | null
+          id?: string
+          is_active?: boolean
+          job_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          department?: string | null
+          id?: string
+          is_active?: boolean
+          job_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          employee_id: string | null
+          first_name: string
+          id: string
+          last_name: string
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          employee_id?: string | null
+          first_name: string
+          id?: string
+          last_name: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string | null
+          first_name?: string
+          id?: string
+          last_name?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      referral_status_history: {
+        Row: {
+          changed_by: string
+          created_at: string
+          id: string
+          note: string | null
+          referral_id: string
+          status: Database["public"]["Enums"]["referral_status"]
+        }
+        Insert: {
+          changed_by: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          referral_id: string
+          status: Database["public"]["Enums"]["referral_status"]
+        }
+        Update: {
+          changed_by?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          referral_id?: string
+          status?: Database["public"]["Enums"]["referral_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_status_history_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referrals: {
+        Row: {
+          candidate_dob: string
+          candidate_email: string
+          candidate_first_name: string
+          candidate_last_name: string
+          candidate_middle_name: string | null
+          candidate_phone: string
+          created_at: string
+          current_status: Database["public"]["Enums"]["referral_status"]
+          how_know_candidate: string
+          id: string
+          job_id: string
+          referrer_id: string
+          resume_path: string | null
+          updated_at: string
+        }
+        Insert: {
+          candidate_dob: string
+          candidate_email: string
+          candidate_first_name: string
+          candidate_last_name: string
+          candidate_middle_name?: string | null
+          candidate_phone: string
+          created_at?: string
+          current_status?: Database["public"]["Enums"]["referral_status"]
+          how_know_candidate: string
+          id?: string
+          job_id: string
+          referrer_id: string
+          resume_path?: string | null
+          updated_at?: string
+        }
+        Update: {
+          candidate_dob?: string
+          candidate_email?: string
+          candidate_first_name?: string
+          candidate_last_name?: string
+          candidate_middle_name?: string | null
+          candidate_phone?: string
+          created_at?: string
+          current_status?: Database["public"]["Enums"]["referral_status"]
+          how_know_candidate?: string
+          id?: string
+          job_id?: string
+          referrer_id?: string
+          resume_path?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +179,14 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      referral_status:
+        | "submitted"
+        | "screening"
+        | "interview"
+        | "offer"
+        | "hired"
+        | "rejected"
+      user_role: "employee" | "hr"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +313,16 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      referral_status: [
+        "submitted",
+        "screening",
+        "interview",
+        "offer",
+        "hired",
+        "rejected",
+      ],
+      user_role: ["employee", "hr"],
+    },
   },
 } as const
