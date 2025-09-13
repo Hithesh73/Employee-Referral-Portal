@@ -34,11 +34,11 @@ const EmployeeDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [showNewReferral, setShowNewReferral] = useState(false);
   const [selectedReferral, setSelectedReferral] = useState<Referral | null>(null);
-  const { user } = useAuth();
+  const { employee } = useAuth();
   const { toast } = useToast();
 
   const fetchReferrals = async () => {
-    if (!user) return;
+    if (!employee) return;
     
     try {
       const { data, error } = await supabase
@@ -51,7 +51,7 @@ const EmployeeDashboard = () => {
             department
           )
         `)
-        .eq('referrer_id', user.id)
+        .eq('referrer_id', employee.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -80,7 +80,7 @@ const EmployeeDashboard = () => {
           event: '*',
           schema: 'public',
           table: 'referrals',
-          filter: `referrer_id=eq.${user?.id}`,
+          filter: `referrer_id=eq.${employee?.id}`,
         },
         () => {
           fetchReferrals();
@@ -91,7 +91,7 @@ const EmployeeDashboard = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id]);
+  }, [employee?.id]);
 
   const getStatusColor = (status: string) => {
     const colors = {

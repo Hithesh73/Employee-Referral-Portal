@@ -6,14 +6,14 @@ import { useAuth } from '@/hooks/useAuth';
 import { Loader2, Users, Briefcase, Clock } from 'lucide-react';
 
 const Index = () => {
-  const { user, profile, loading } = useAuth();
+  const { employee, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && user && profile) {
+    if (!loading && employee) {
       navigate('/dashboard');
     }
-  }, [user, profile, loading, navigate]);
+  }, [employee, loading, navigate]);
 
   if (loading) {
     return (
@@ -23,7 +23,7 @@ const Index = () => {
     );
   }
 
-  if (user && profile) {
+  if (employee) {
     return null; // Will redirect to dashboard
   }
 

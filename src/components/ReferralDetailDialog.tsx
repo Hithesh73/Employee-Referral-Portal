@@ -63,23 +63,23 @@ const ReferralDetailDialog = ({ referral, open, onOpenChange }: ReferralDetailDi
 
       if (error) throw error;
 
-      // Get unique user IDs and fetch their profiles
-      const userIds = [...new Set(historyData?.map(h => h.changed_by) || [])];
-      const { data: profilesData } = await supabase
-        .from('profiles')
-        .select('user_id, first_name, last_name')
-        .in('user_id', userIds);
+      // Get unique employee IDs and fetch their data
+      const employeeIds = [...new Set(historyData?.map(h => h.changed_by) || [])];
+      const { data: employeesData } = await supabase
+        .from('employees')
+        .select('id, name')
+        .in('id', employeeIds);
 
-      // Create a map of user_id to profile
-      const profileMap = new Map();
-      profilesData?.forEach(profile => {
-        profileMap.set(profile.user_id, `${profile.first_name} ${profile.last_name}`);
+      // Create a map of employee_id to employee
+      const employeeMap = new Map();
+      employeesData?.forEach(employee => {
+        employeeMap.set(employee.id, employee.name);
       });
 
-      // Add user names to history data
+      // Add employee names to history data
       const historyWithNames = historyData?.map(history => ({
         ...history,
-        user_name: profileMap.get(history.changed_by) || 'Unknown User'
+        user_name: employeeMap.get(history.changed_by) || 'Unknown User'
       })) || [];
 
       setStatusHistory(historyWithNames);

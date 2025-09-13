@@ -51,7 +51,7 @@ const NewReferralDialog = ({ open, onOpenChange, onSuccess }: NewReferralDialogP
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const { user } = useAuth();
+  const { employee } = useAuth();
   const { toast } = useToast();
 
   const form = useForm<ReferralForm>({
@@ -95,10 +95,10 @@ const NewReferralDialog = ({ open, onOpenChange, onSuccess }: NewReferralDialogP
   }, [open]);
 
   const uploadResume = async (file: File): Promise<string | null> => {
-    if (!user) return null;
+    if (!employee) return null;
     
     const fileExt = file.name.split('.').pop();
-    const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+    const fileName = `${employee.id}/${Date.now()}.${fileExt}`;
     
     setUploading(true);
     try {
@@ -140,7 +140,7 @@ const NewReferralDialog = ({ open, onOpenChange, onSuccess }: NewReferralDialogP
         const { error } = await supabase
           .from('referrals')
           .insert({
-            referrer_id: user.id,
+            referrer_id: employee.id,
             job_id: jobId,
             candidate_first_name: data.candidateFirstName,
             candidate_middle_name: data.candidateMiddleName || null,
