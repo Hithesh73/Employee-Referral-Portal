@@ -186,6 +186,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_referral: {
+        Args: {
+          p_candidate_dob: string
+          p_candidate_email: string
+          p_candidate_first_name: string
+          p_candidate_last_name: string
+          p_candidate_middle_name: string
+          p_candidate_phone: string
+          p_how_know_candidate: string
+          p_job_id: string
+          p_resume_path: string
+        }
+        Returns: string
+      }
       get_user_profile_for_status: {
         Args: { user_id: string }
         Returns: {

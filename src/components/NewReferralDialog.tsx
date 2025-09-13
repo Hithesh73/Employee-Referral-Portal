@@ -139,21 +139,19 @@ const NewReferralDialog = ({ open, onOpenChange, onSuccess }: NewReferralDialogP
         resumePath = uploaded;
       }
 
-      // Create referrals for each selected job
+      // Create referrals for each selected job using secure RPC
       for (const jobId of data.selectedJobs) {
-        const { error } = await supabase
-          .from('referrals')
-          .insert({
-            referrer_id: employee.id,
-            job_id: jobId,
-            candidate_first_name: data.candidateFirstName,
-            candidate_middle_name: data.candidateMiddleName || null,
-            candidate_last_name: data.candidateLastName,
-            candidate_phone: data.candidatePhone,
-            candidate_email: data.candidateEmail,
-            candidate_dob: data.candidateDob,
-            resume_path: resumePath,
-            how_know_candidate: data.howKnowCandidate,
+        const { data: result, error } = await supabase
+          .rpc('create_referral', {
+            p_job_id: jobId,
+            p_candidate_first_name: data.candidateFirstName,
+            p_candidate_middle_name: data.candidateMiddleName || null,
+            p_candidate_last_name: data.candidateLastName,
+            p_candidate_phone: data.candidatePhone,
+            p_candidate_email: data.candidateEmail,
+            p_candidate_dob: data.candidateDob,
+            p_resume_path: resumePath || '',
+            p_how_know_candidate: data.howKnowCandidate,
           });
 
         if (error) throw error;
