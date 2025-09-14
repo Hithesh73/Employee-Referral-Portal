@@ -62,11 +62,15 @@ const JobManagementDialog = ({ open, onOpenChange, onUpdate }: JobManagementDial
     try {
       setLoading(true);
       
+      // Get current employee data
       const storedEmployee = localStorage.getItem('employee');
-      if (!storedEmployee) return;
-
+      if (!storedEmployee) {
+        throw new Error('No employee authentication found');
+      }
+      
       const employee = JSON.parse(storedEmployee);
-
+      
+      // Use the HR-specific RPC function for jobs
       const { data, error } = await supabase.rpc('get_all_jobs_for_hr', {
         p_employee_id: employee.employee_id,
         p_email: employee.email
@@ -95,13 +99,16 @@ const JobManagementDialog = ({ open, onOpenChange, onUpdate }: JobManagementDial
   const onSubmit = async (data: JobForm) => {
     setSubmitting(true);
     try {
+      // Get current employee data
       const storedEmployee = localStorage.getItem('employee');
-      if (!storedEmployee) return;
-
+      if (!storedEmployee) {
+        throw new Error('No employee authentication found');
+      }
+      
       const employee = JSON.parse(storedEmployee);
 
       if (editingJob) {
-        // Update existing job
+        // Update existing job using RPC
         const { error } = await supabase.rpc('update_job_by_hr', {
           p_employee_id: employee.employee_id,
           p_email: employee.email,
@@ -118,7 +125,7 @@ const JobManagementDialog = ({ open, onOpenChange, onUpdate }: JobManagementDial
           description: "Job updated successfully",
         });
       } else {
-        // Create new job
+        // Create new job using RPC
         const { error } = await supabase.rpc('create_job_by_hr', {
           p_employee_id: employee.employee_id,
           p_email: employee.email,
@@ -154,11 +161,15 @@ const JobManagementDialog = ({ open, onOpenChange, onUpdate }: JobManagementDial
 
   const toggleJobStatus = async (job: Job) => {
     try {
+      // Get current employee data
       const storedEmployee = localStorage.getItem('employee');
-      if (!storedEmployee) return;
-
+      if (!storedEmployee) {
+        throw new Error('No employee authentication found');
+      }
+      
       const employee = JSON.parse(storedEmployee);
-
+      
+      // Use the HR-specific RPC function to toggle job status
       const { error } = await supabase.rpc('toggle_job_active_by_hr', {
         p_employee_id: employee.employee_id,
         p_email: employee.email,

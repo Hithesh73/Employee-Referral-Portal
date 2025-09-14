@@ -87,11 +87,15 @@ const HRReferralDetailDialog = ({ referral, open, onOpenChange, onUpdate }: HRRe
     try {
       setLoading(true);
       
+      // Get current employee data
       const storedEmployee = localStorage.getItem('employee');
-      if (!storedEmployee) return;
-
+      if (!storedEmployee) {
+        throw new Error('No employee authentication found');
+      }
+      
       const employee = JSON.parse(storedEmployee);
-
+      
+      // Use the HR-specific RPC function for status history
       const { data: historyData, error } = await supabase.rpc('get_referral_status_history_for_hr', {
         p_employee_id: employee.employee_id,
         p_email: employee.email,
@@ -100,7 +104,17 @@ const HRReferralDetailDialog = ({ referral, open, onOpenChange, onUpdate }: HRRe
 
       if (error) throw error;
 
-      setStatusHistory(historyData || []);
+      // Transform the data to match our interface
+      const historyWithNames = historyData?.map((history: any) => ({
+        id: history.id,
+        status: history.status,
+        note: history.note,
+        created_at: history.created_at,
+        changed_by: history.changed_by,
+        user_name: history.user_name || 'Unknown User'
+      })) || [];
+
+      setStatusHistory(historyWithNames);
     } catch (error) {
       console.error('Error fetching status history:', error);
       toast({
@@ -171,6 +185,7 @@ const HRReferralDetailDialog = ({ referral, open, onOpenChange, onUpdate }: HRRe
 
     setUpdating(true);
     try {
+      // Use the HR-specific RPC function to update status
       const { error } = await supabase.rpc('update_referral_status_by_hr', {
         p_employee_id: employee.employee_id,
         p_email: employee.email,
