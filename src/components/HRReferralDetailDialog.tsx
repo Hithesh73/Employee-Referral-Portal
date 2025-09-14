@@ -185,10 +185,18 @@ const HRReferralDetailDialog = ({ referral, open, onOpenChange, onUpdate }: HRRe
 
     setUpdating(true);
     try {
+      // Get current employee data from localStorage
+      const storedEmployee = localStorage.getItem('employee');
+      if (!storedEmployee) {
+        throw new Error('No employee authentication found');
+      }
+      
+      const employeeData = JSON.parse(storedEmployee);
+      
       // Use the HR-specific RPC function to update status
       const { error } = await supabase.rpc('update_referral_status_by_hr', {
-        p_employee_id: employee.employee_id,
-        p_email: employee.email,
+        p_employee_id: employeeData.employee_id,
+        p_email: employeeData.email,
         p_referral_id: referral.id,
         p_status: data.status,
         p_note: data.note || null
