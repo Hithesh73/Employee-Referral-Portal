@@ -59,22 +59,34 @@ const ReferralDetailDialog = ({ referral, open, onOpenChange }: ReferralDetailDi
     
     try {
       setLoading(true);
-      const { data: historyData, error } = await supabase
+      // Primary: employee-scoped RPC (shows HR notes too)
+      let { data: historyData, error } = await supabase
         .rpc('get_referral_status_history_for_employee', {
           p_employee_id: employee.employee_id,
           p_email: employee.email,
           p_referral_id: referral.id
         });
 
-      if (error) throw error;
+      // Fallback: if user is HR (or first call fails), use HR RPC
+      if ((error || !historyData || historyData.length === 0) && employee.role === 'hr') {
+        const hrRes = await supabase.rpc('get_referral_status_history_for_hr', {
+          p_employee_id: employee.employee_id,
+          p_email: employee.email,
+          p_referral_id: referral.id,
+        });
+        if (hrRes.error) throw hrRes.error;
+        historyData = hrRes.data as any[];
+      }
 
+      if (error) throw error;
       setStatusHistory(historyData || []);
     } catch (error) {
       console.error('Error fetching status history:', error);
+      setStatusHistory([]);
       toast({
-        title: "Error",
-        description: "Failed to load status history",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to load status history',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -252,32 +264,36 @@ const ReferralDetailDialog = ({ referral, open, onOpenChange }: ReferralDetailDi
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {statusHistory.map((history, index) => (
-                    <div key={history.id} className="flex space-x-4">
-                      <div className="flex flex-col items-center">
-                        <div className={`w-4 h-4 rounded-full ${getStatusColor(history.status).split(' ')[0]} border-2 border-background`}></div>
-                        {index < statusHistory.length - 1 && (
-                          <div className="w-px h-8 bg-border mt-2"></div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0 pb-8">
-                        <div className="flex items-center space-x-2">
-                          <Badge className={getStatusColor(history.status)}>
-                            {history.status.replace('_', ' ').toUpperCase()}
-                          </Badge>
-                          <span className="text-sm text-muted-foreground">
-                            {formatDate(history.created_at)}
-                          </span>
+                  {statusHistory.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No updates yet.</p>
+                  ) : (
+                    statusHistory.map((history, index) => (
+                      <div key={history.id} className="flex space-x-4">
+                        <div className="flex flex-col items-center">
+                          <div className={`w-4 h-4 rounded-full ${getStatusColor(history.status).split(' ')[0]} border-2 border-background`}></div>
+                          {index < statusHistory.length - 1 && (
+                            <div className="w-px h-8 bg-border mt-2"></div>
+                          )}
                         </div>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Updated by: {history.user_name}
-                        </p>
-                        {history.note && (
-                          <p className="text-sm mt-2">{history.note}</p>
-                        )}
+                        <div className="flex-1 min-w-0 pb-8">
+                          <div className="flex items-center space-x-2">
+                            <Badge className={getStatusColor(history.status)}>
+                              {history.status.replace('_', ' ').toUpperCase()}
+                            </Badge>
+                            <span className="text-sm text-muted-foreground">
+                              {formatDate(history.created_at)}
+                            </span>
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Updated by: {history.user_name}
+                          </p>
+                          {history.note && (
+                            <p className="text-sm mt-2">{history.note}</p>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               )}
             </CardContent>
