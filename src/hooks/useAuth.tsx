@@ -137,6 +137,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setEmployee(null);
     localStorage.removeItem('employee');
     localStorage.removeItem('auth_token');
+    // Redirect to home page after logout
+    window.location.href = '/';
   };
 
   const value = {
