@@ -70,12 +70,23 @@ const NewReferralDialog = ({ open, onOpenChange, onSuccess }: NewReferralDialogP
   });
 
   const fetchJobs = async () => {
+    if (!employee) return;
+    
     try {
+      // Get current employee data from localStorage for secure access
+      const storedEmployee = localStorage.getItem('employee');
+      if (!storedEmployee) {
+        throw new Error('No employee authentication found');
+      }
+      
+      const employeeData = JSON.parse(storedEmployee);
+      
+      // Use secure RPC function to get jobs
       const { data, error } = await supabase
-        .from('jobs')
-        .select('*')
-        .eq('is_active', true)
-        .order('job_id');
+        .rpc('get_all_jobs_for_hr', {
+          p_employee_id: employeeData.employee_id,
+          p_email: employeeData.email,
+        });
 
       if (error) throw error;
       setJobs(data || []);
