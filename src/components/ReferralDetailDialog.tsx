@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Download, Calendar, Phone, Mail, User } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 interface StatusHistory {
   id: string;
@@ -51,38 +52,23 @@ const ReferralDetailDialog = ({ referral, open, onOpenChange }: ReferralDetailDi
   const [statusHistory, setStatusHistory] = useState<StatusHistory[]>([]);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { employee } = useAuth();
 
   const fetchStatusHistory = async () => {
+    if (!employee) return;
+    
     try {
       setLoading(true);
       const { data: historyData, error } = await supabase
-        .from('referral_status_history')
-        .select('*')
-        .eq('referral_id', referral.id)
-        .order('created_at', { ascending: false });
+        .rpc('get_referral_status_history_for_employee', {
+          p_employee_id: employee.employee_id,
+          p_email: employee.email,
+          p_referral_id: referral.id
+        });
 
       if (error) throw error;
 
-      // Get unique employee IDs and fetch their data
-      const employeeIds = [...new Set(historyData?.map(h => h.changed_by) || [])];
-      const { data: employeesData } = await supabase
-        .from('employees')
-        .select('id, name')
-        .in('id', employeeIds);
-
-      // Create a map of employee_id to employee
-      const employeeMap = new Map();
-      employeesData?.forEach(employee => {
-        employeeMap.set(employee.id, employee.name);
-      });
-
-      // Add employee names to history data
-      const historyWithNames = historyData?.map(history => ({
-        ...history,
-        user_name: employeeMap.get(history.changed_by) || 'Unknown User'
-      })) || [];
-
-      setStatusHistory(historyWithNames);
+      setStatusHistory(historyData || []);
     } catch (error) {
       console.error('Error fetching status history:', error);
       toast({
@@ -96,10 +82,10 @@ const ReferralDetailDialog = ({ referral, open, onOpenChange }: ReferralDetailDi
   };
 
   useEffect(() => {
-    if (open && referral) {
+    if (open && referral && employee) {
       fetchStatusHistory();
     }
-  }, [open, referral]);
+  }, [open, referral, employee]);
 
   const downloadResume = async () => {
     if (!referral.resume_path) return;

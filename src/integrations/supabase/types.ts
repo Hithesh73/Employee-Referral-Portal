@@ -271,6 +271,17 @@ export type Database = {
         Args: { p_email: string; p_employee_id: string }
         Returns: string
       }
+      get_referral_status_history_for_employee: {
+        Args: { p_email: string; p_employee_id: string; p_referral_id: string }
+        Returns: {
+          changed_by: string
+          created_at: string
+          id: string
+          note: string
+          status: Database["public"]["Enums"]["referral_status"]
+          user_name: string
+        }[]
+      }
       get_referral_status_history_for_hr: {
         Args: { p_email: string; p_employee_id: string; p_referral_id: string }
         Returns: {
