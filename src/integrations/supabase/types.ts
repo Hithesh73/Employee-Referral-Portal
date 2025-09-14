@@ -226,6 +226,18 @@ export type Database = {
         }
         Returns: string
       }
+      get_active_jobs_for_employee: {
+        Args: { p_email: string; p_employee_id: string }
+        Returns: {
+          created_at: string
+          department: string | null
+          id: string
+          is_active: boolean
+          job_id: string
+          title: string
+          updated_at: string
+        }[]
+      }
       get_all_jobs_for_hr: {
         Args: { p_email: string; p_employee_id: string }
         Returns: {

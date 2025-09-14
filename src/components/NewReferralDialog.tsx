@@ -81,9 +81,9 @@ const NewReferralDialog = ({ open, onOpenChange, onSuccess }: NewReferralDialogP
       
       const employeeData = JSON.parse(storedEmployee);
       
-      // Use secure RPC function to get jobs
+      // Use secure RPC function to get jobs for any employee (not just HR)
       const { data, error } = await supabase
-        .rpc('get_all_jobs_for_hr', {
+        .rpc('get_active_jobs_for_employee', {
           p_employee_id: employeeData.employee_id,
           p_email: employeeData.email,
         });
