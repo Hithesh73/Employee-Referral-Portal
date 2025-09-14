@@ -200,6 +200,10 @@ export type Database = {
         }
         Returns: string
       }
+      get_current_employee_from_custom_auth: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_referrals_by_employee_identifier: {
         Args: { p_email?: string; p_employee_id: string }
         Returns: {
