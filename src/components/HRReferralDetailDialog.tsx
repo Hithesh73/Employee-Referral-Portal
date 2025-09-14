@@ -86,34 +86,21 @@ const HRReferralDetailDialog = ({ referral, open, onOpenChange, onUpdate }: HRRe
   const fetchStatusHistory = async () => {
     try {
       setLoading(true);
-      const { data: historyData, error } = await supabase
-        .from('referral_status_history')
-        .select('*')
-        .eq('referral_id', referral.id)
-        .order('created_at', { ascending: false });
+      
+      const storedEmployee = localStorage.getItem('employee');
+      if (!storedEmployee) return;
+
+      const employee = JSON.parse(storedEmployee);
+
+      const { data: historyData, error } = await supabase.rpc('get_referral_status_history_for_hr', {
+        p_employee_id: employee.employee_id,
+        p_email: employee.email,
+        p_referral_id: referral.id
+      });
 
       if (error) throw error;
 
-      // Get unique employee IDs and fetch their data
-      const employeeIds = [...new Set(historyData?.map(h => h.changed_by) || [])];
-      const { data: employeesData } = await supabase
-        .from('employees')
-        .select('id, name')
-        .in('id', employeeIds);
-
-      // Create a map of employee_id to employee
-      const employeeMap = new Map();
-      employeesData?.forEach(employee => {
-        employeeMap.set(employee.id, employee.name);
-      });
-
-      // Add employee names to history data
-      const historyWithNames = historyData?.map(history => ({
-        ...history,
-        user_name: employeeMap.get(history.changed_by) || 'Unknown User'
-      })) || [];
-
-      setStatusHistory(historyWithNames);
+      setStatusHistory(historyData || []);
     } catch (error) {
       console.error('Error fetching status history:', error);
       toast({
@@ -184,27 +171,15 @@ const HRReferralDetailDialog = ({ referral, open, onOpenChange, onUpdate }: HRRe
 
     setUpdating(true);
     try {
-      // Update the referral status
-      const { error: updateError } = await supabase
-        .from('referrals')
-        .update({ current_status: data.status })
-        .eq('id', referral.id);
+      const { error } = await supabase.rpc('update_referral_status_by_hr', {
+        p_employee_id: employee.employee_id,
+        p_email: employee.email,
+        p_referral_id: referral.id,
+        p_status: data.status,
+        p_note: data.note || null
+      });
 
-      if (updateError) throw updateError;
-
-      // Add status history entry with note
-      if (data.note?.trim()) {
-        const { error: historyError } = await supabase
-          .from('referral_status_history')
-          .insert({
-            referral_id: referral.id,
-            status: data.status,
-            note: data.note.trim(),
-            changed_by: employee.id,
-          });
-
-        if (historyError) throw historyError;
-      }
+      if (error) throw error;
 
       toast({
         title: "Success",

@@ -61,10 +61,16 @@ const JobManagementDialog = ({ open, onOpenChange, onUpdate }: JobManagementDial
   const fetchJobs = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('jobs')
-        .select('*')
-        .order('created_at', { ascending: false });
+      
+      const storedEmployee = localStorage.getItem('employee');
+      if (!storedEmployee) return;
+
+      const employee = JSON.parse(storedEmployee);
+
+      const { data, error } = await supabase.rpc('get_all_jobs_for_hr', {
+        p_employee_id: employee.employee_id,
+        p_email: employee.email
+      });
 
       if (error) throw error;
       setJobs(data || []);
@@ -89,16 +95,21 @@ const JobManagementDialog = ({ open, onOpenChange, onUpdate }: JobManagementDial
   const onSubmit = async (data: JobForm) => {
     setSubmitting(true);
     try {
+      const storedEmployee = localStorage.getItem('employee');
+      if (!storedEmployee) return;
+
+      const employee = JSON.parse(storedEmployee);
+
       if (editingJob) {
         // Update existing job
-        const { error } = await supabase
-          .from('jobs')
-          .update({
-            job_id: data.job_id,
-            title: data.title,
-            department: data.department,
-          })
-          .eq('id', editingJob.id);
+        const { error } = await supabase.rpc('update_job_by_hr', {
+          p_employee_id: employee.employee_id,
+          p_email: employee.email,
+          p_id: editingJob.id,
+          p_job_id: data.job_id,
+          p_title: data.title,
+          p_department: data.department
+        });
 
         if (error) throw error;
         
@@ -108,13 +119,13 @@ const JobManagementDialog = ({ open, onOpenChange, onUpdate }: JobManagementDial
         });
       } else {
         // Create new job
-        const { error } = await supabase
-          .from('jobs')
-          .insert({
-            job_id: data.job_id,
-            title: data.title,
-            department: data.department,
-          });
+        const { error } = await supabase.rpc('create_job_by_hr', {
+          p_employee_id: employee.employee_id,
+          p_email: employee.email,
+          p_job_id: data.job_id,
+          p_title: data.title,
+          p_department: data.department
+        });
 
         if (error) throw error;
         
@@ -143,10 +154,17 @@ const JobManagementDialog = ({ open, onOpenChange, onUpdate }: JobManagementDial
 
   const toggleJobStatus = async (job: Job) => {
     try {
-      const { error } = await supabase
-        .from('jobs')
-        .update({ is_active: !job.is_active })
-        .eq('id', job.id);
+      const storedEmployee = localStorage.getItem('employee');
+      if (!storedEmployee) return;
+
+      const employee = JSON.parse(storedEmployee);
+
+      const { error } = await supabase.rpc('toggle_job_active_by_hr', {
+        p_employee_id: employee.employee_id,
+        p_email: employee.email,
+        p_job_id: job.id,
+        p_is_active: !job.is_active
+      });
 
       if (error) throw error;
 

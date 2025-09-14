@@ -67,68 +67,53 @@ const HRDashboard = () => {
 
   const fetchReferrals = async () => {
     try {
-      console.log('Fetching referrals for HR...');
-      
-      // Debug: Check authentication
       const storedEmployee = localStorage.getItem('employee');
-      console.log('Stored employee:', storedEmployee);
-      
-      // Set auth header manually for the request
-      const authToken = localStorage.getItem('auth_token');
-      console.log('Auth token:', authToken);
-      
-      if (authToken) {
-        // Decode and set the email in the request context
-        const tokenData = JSON.parse(atob(authToken));
-        console.log('Token data:', tokenData);
-        
-        // Find the HR employee and set the auth context
-        const { data: hrEmployee } = await supabase
-          .from('employees')
-          .select('*')
-          .eq('employee_id', tokenData.employee_id)
-          .eq('role', 'hr')
-          .eq('is_active', true)
-          .single();
-          
-        console.log('HR Employee found:', hrEmployee);
-        
-        if (hrEmployee) {
-          // Manually set auth context by calling the RPC function
-          const { data, error } = await supabase.rpc('set_claim', {
-            uid: '00000000-0000-0000-0000-000000000000', // dummy uid since we're using custom auth
-            claim: 'email',
-            value: hrEmployee.email
-          });
-          
-          console.log('Set claim result:', { data, error });
-        }
+      if (!storedEmployee) {
+        console.log('No employee data found');
+        return;
       }
-      
-      const { data, error } = await supabase
-        .from('referrals')
-        .select(`
-          *,
-          jobs (
-            id,
-            job_id,
-            title,
-            department
-          ),
-          employees!referrer_id (
-            name,
-            employee_id
-          )
-        `)
-        .order('created_at', { ascending: false });
 
-      console.log('Referrals query result:', { data, error });
+      const employee = JSON.parse(storedEmployee);
+      console.log('HR Employee:', employee);
+
+      const { data, error } = await supabase.rpc('get_referrals_for_hr_by_identifier', {
+        p_employee_id: employee.employee_id,
+        p_email: employee.email
+      });
 
       if (error) throw error;
-      setReferrals((data as any) || []);
+      
+      // Transform the data to match the expected format
+      const transformedData = (data || []).map((item: any) => ({
+        id: item.id,
+        candidate_first_name: item.candidate_first_name,
+        candidate_middle_name: item.candidate_middle_name,
+        candidate_last_name: item.candidate_last_name,
+        candidate_phone: item.candidate_phone,
+        candidate_email: item.candidate_email,
+        candidate_dob: item.candidate_dob,
+        current_status: item.current_status,
+        created_at: item.created_at,
+        updated_at: item.updated_at,
+        resume_path: item.resume_path,
+        how_know_candidate: item.how_know_candidate,
+        jobs: {
+          id: item.job_uuid,
+          job_id: item.job_job_id,
+          title: item.job_title,
+          department: item.job_department
+        },
+        employees: {
+          name: item.referrer_name,
+          employee_id: item.referrer_employee_id
+        }
+      }));
+
+      console.log('Transformed referrals:', transformedData);
+      setReferrals(transformedData);
       
       // Calculate status counts
-      const counts = (data || []).reduce((acc, referral) => {
+      const counts = transformedData.reduce((acc, referral) => {
         acc[referral.current_status] = (acc[referral.current_status] || 0) + 1;
         return acc;
       }, {} as StatusCounts);
@@ -146,10 +131,15 @@ const HRDashboard = () => {
 
   const fetchJobs = async () => {
     try {
-      const { data, error } = await supabase
-        .from('jobs')
-        .select('*')
-        .order('job_id');
+      const storedEmployee = localStorage.getItem('employee');
+      if (!storedEmployee) return;
+
+      const employee = JSON.parse(storedEmployee);
+
+      const { data, error } = await supabase.rpc('get_all_jobs_for_hr', {
+        p_employee_id: employee.employee_id,
+        p_email: employee.email
+      });
 
       if (error) throw error;
       setJobs(data || []);

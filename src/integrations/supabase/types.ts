@@ -186,6 +186,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_job_by_hr: {
+        Args: {
+          p_department: string
+          p_email: string
+          p_employee_id: string
+          p_job_id: string
+          p_title: string
+        }
+        Returns: string
+      }
       create_referral: {
         Args: {
           p_candidate_dob: string
@@ -200,9 +210,36 @@ export type Database = {
         }
         Returns: string
       }
+      get_all_jobs_for_hr: {
+        Args: { p_email: string; p_employee_id: string }
+        Returns: {
+          created_at: string
+          department: string | null
+          id: string
+          is_active: boolean
+          job_id: string
+          title: string
+          updated_at: string
+        }[]
+      }
       get_current_employee_from_custom_auth: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      get_hr_employee_uuid: {
+        Args: { p_email: string; p_employee_id: string }
+        Returns: string
+      }
+      get_referral_status_history_for_hr: {
+        Args: { p_email: string; p_employee_id: string; p_referral_id: string }
+        Returns: {
+          changed_by: string
+          created_at: string
+          id: string
+          note: string
+          status: Database["public"]["Enums"]["referral_status"]
+          user_name: string
+        }[]
       }
       get_referrals_by_employee_identifier: {
         Args: { p_email?: string; p_employee_id: string }
@@ -224,6 +261,29 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_referrals_for_hr_by_identifier: {
+        Args: { p_email: string; p_employee_id: string }
+        Returns: {
+          candidate_dob: string
+          candidate_email: string
+          candidate_first_name: string
+          candidate_last_name: string
+          candidate_middle_name: string
+          candidate_phone: string
+          created_at: string
+          current_status: Database["public"]["Enums"]["referral_status"]
+          how_know_candidate: string
+          id: string
+          job_department: string
+          job_job_id: string
+          job_title: string
+          job_uuid: string
+          referrer_employee_id: string
+          referrer_name: string
+          resume_path: string
+          updated_at: string
+        }[]
+      }
       get_user_profile_for_status: {
         Args: { user_id: string }
         Returns: {
@@ -234,6 +294,36 @@ export type Database = {
       is_current_user_hr: {
         Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      toggle_job_active_by_hr: {
+        Args: {
+          p_email: string
+          p_employee_id: string
+          p_is_active: boolean
+          p_job_id: string
+        }
+        Returns: undefined
+      }
+      update_job_by_hr: {
+        Args: {
+          p_department: string
+          p_email: string
+          p_employee_id: string
+          p_id: string
+          p_job_id: string
+          p_title: string
+        }
+        Returns: undefined
+      }
+      update_referral_status_by_hr: {
+        Args: {
+          p_email: string
+          p_employee_id: string
+          p_note: string
+          p_referral_id: string
+          p_status: Database["public"]["Enums"]["referral_status"]
+        }
+        Returns: undefined
       }
       validate_employee_login: {
         Args: { p_email: string; p_employee_id: string; p_password: string }
