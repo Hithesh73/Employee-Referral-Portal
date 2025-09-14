@@ -210,6 +210,22 @@ export type Database = {
         }
         Returns: string
       }
+      create_referral_secure: {
+        Args: {
+          p_candidate_dob: string
+          p_candidate_email: string
+          p_candidate_first_name: string
+          p_candidate_last_name: string
+          p_candidate_middle_name: string
+          p_candidate_phone: string
+          p_employee_email: string
+          p_employee_id: string
+          p_how_know_candidate: string
+          p_job_id: string
+          p_resume_path: string
+        }
+        Returns: string
+      }
       get_all_jobs_for_hr: {
         Args: { p_email: string; p_employee_id: string }
         Returns: {
@@ -225,6 +241,19 @@ export type Database = {
       get_current_employee_from_custom_auth: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      get_employee_info: {
+        Args: { p_email: string; p_employee_id: string }
+        Returns: {
+          created_at: string
+          email: string
+          employee_id: string
+          id: string
+          is_active: boolean
+          name: string
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+        }[]
       }
       get_hr_employee_uuid: {
         Args: { p_email: string; p_employee_id: string }

@@ -139,10 +139,20 @@ const NewReferralDialog = ({ open, onOpenChange, onSuccess }: NewReferralDialogP
         resumePath = uploaded;
       }
 
+      // Get current employee data from localStorage
+      const storedEmployee = localStorage.getItem('employee');
+      if (!storedEmployee) {
+        throw new Error('No employee authentication found');
+      }
+      
+      const employeeData = JSON.parse(storedEmployee);
+
       // Create referrals for each selected job using secure RPC
       for (const jobId of data.selectedJobs) {
         const { data: result, error } = await supabase
-          .rpc('create_referral', {
+          .rpc('create_referral_secure', {
+            p_employee_id: employeeData.employee_id,
+            p_employee_email: employeeData.email,
             p_job_id: jobId,
             p_candidate_first_name: data.candidateFirstName,
             p_candidate_middle_name: data.candidateMiddleName || null,
